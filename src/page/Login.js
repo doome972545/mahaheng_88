@@ -27,9 +27,9 @@ const Login = () => {
     });
     const dataRes = await fetchData.json();
     if (dataRes.message === 'เข้าสู่ระบบสำเร็จ') {
-      Navigate('/')
       localStorage.setItem("user", JSON.stringify(dataRes));
       toast.success(dataRes.message)
+      Navigate('/')
     } else {
       toast.error(dataRes.message)
     }

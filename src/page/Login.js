@@ -29,7 +29,9 @@ const Login = () => {
     if (dataRes.message === 'เข้าสู่ระบบสำเร็จ') {
       localStorage.setItem("user", JSON.stringify(dataRes));
       toast.success(dataRes.message)
-      Navigate('/home')
+      setTimeout(() => {
+        Navigate('/home');
+      }, 100); // Adjust the delay as needed
     } else {
       toast.error(dataRes.message)
     }

@@ -12,7 +12,6 @@ const Modal = ({ show, onClose, data }) => {
     };
     const storedUserData = JSON.parse(localStorage.getItem("user"));
     var num = data.num
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (data.type === 'two') {

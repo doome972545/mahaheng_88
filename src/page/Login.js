@@ -29,7 +29,7 @@ const Login = () => {
     if (dataRes.message === 'เข้าสู่ระบบสำเร็จ') {
       localStorage.setItem("user", JSON.stringify(dataRes));
       toast.success(dataRes.message)
-      Navigate('/')
+      Navigate('/home')
     } else {
       toast.error(dataRes.message)
     }

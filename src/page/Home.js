@@ -5,6 +5,9 @@ import Modal from '../components/Modal';
 import FormNum from '../components/FormNum';
 const Home = () => {
     const limit = JSON.parse(localStorage.getItem("limitvalue"));
+    if (limit === undefined){
+        console.log("object")
+    }
     const limitint = parseInt(limit)
     const [listTwo, setListTwo] = useState(null);
     const [listThree, setListThree] = useState(null);
@@ -116,7 +119,7 @@ const Home = () => {
                                                 <td class="border border-slate-300 text-center text-lg">{el.num}</td>
                                                 <td class={`border border-slate-300 text-center text-lg ${el.priceUpper > limitint ? 'text-red-500' : ""}`}>{el.priceUpper}</td>
                                                 <td class={`border border-slate-300 text-center text-lg ${el.priceLower > limitint ? 'text-red-500' : ""}`}>{el.priceLower}</td>
-                                                <td class={` text-center flex justify-center text-2xl cursor-pointer`} onClick={(() => handleEdit(el.id, el.priceLower, el.priceUpper, el.num, 'three'))} ><CiEdit /></td>
+                                                <td class={` text-center flex justify-center text-2xl cursor-pointer`} onClick={(() => handleEdit(el.id, el.priceLower, el.priceUpper, el.num, 'two'))} ><CiEdit /></td>
                                             </tr>
                                         ))
                                     ) : (

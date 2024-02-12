@@ -10,7 +10,7 @@ const FormNum = () => {
     const [dataArray, setDataArray] = useState([]);
     const [priceUpper, setPriceUpper] = useState();
     const [priceLower, setPriceLower] = useState();
-    const [limitValue, setLimitValue] = useState()
+    const [limitValue, setLimitValue] = useState('')
     const handlelimitvalChange = (event) => {
         const inputValue = event.target.value;
         setLimitValue(inputValue);

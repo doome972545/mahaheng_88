@@ -148,8 +148,10 @@ const Home = () => {
                         <button className='ml-4 mb-4 bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600' onClick={deleteTwo}>ล้างข้อมูลเลข 2 ตัว</button>
                         <h1 className='text-center'>เลข 2 ตัว </h1>
                         <div className='flex gap-3 ml-4'>
-                            <p> ยอดรวม บน:{sumtwo ? sumtwo.Upper : <p>0</p>} บาท</p>
-                            <p> ยอดรวม ล่าง:{sumtwo ? sumtwo.Lower : <p>0</p>} บาท</p>
+                            <p> ยอดรวม บน:{sumtwo ? <p>{sumtwo.Upper}</p> 
+                            : <p>0</p>} บาท</p>
+                            <p> ยอดรวม ล่าง:{sumtwo ? <p>{sumtwo.Lower}</p> 
+                            : <p>0</p>} บาท</p>
                         </div>
                         <div className='overflow-y-auto h-[80vh] px-4 mt-4 '>
                             <table class="table-auto w-full bg-white ">

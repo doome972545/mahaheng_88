@@ -84,48 +84,6 @@ const FormNum = () => {
         }
     };
 
-
-    const deleteTwo = async (e) => {
-        try {
-            const fetchData = await fetch(`${process.env.REACT_APP_SERVER_DOMIN}/api/num/deletetwo/${storedUserData.data.id}`, {
-                method: 'DELETE',
-            });
-
-            if (!fetchData.ok) {
-                throw new Error('not found data');
-            }
-
-            const dataRes = await fetchData.json();
-            if (fetchData.ok) {
-                toast.success(dataRes.message)
-                window.location.reload();
-            } else {
-                toast.error(dataRes.message)
-            }
-        } catch (error) {
-            console.error('Error:', error.message);
-        }
-    }
-    const deleteThree = async (e) => {
-        try {
-            const fetchData = await fetch(`${process.env.REACT_APP_SERVER_DOMIN}/api/num/deletethree/${storedUserData.data.id}`, {
-                method: 'DELETE',
-            });
-
-            if (!fetchData.ok) {
-                throw new Error('not found data');
-            }
-
-            const dataRes = await fetchData.json();
-            if (fetchData.ok) {
-                window.location.reload();
-            }
-        } catch (error) {
-            console.error('Error:', error.message);
-        }
-    }
-
-
     return (
         <div>
             <div className='border rounded-md shadow-lg bg-yellow-50 min-w-[50%] pb-4' >
@@ -206,8 +164,6 @@ const FormNum = () => {
                         ตกลง
                     </button>
                 </form>
-                <button className='ml-4 mb-4 bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600' onClick={deleteTwo}>ล้างข้อมูลเลข 2 ตัว</button>
-                <button className='ml-4 mb-4 bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600' onClick={deleteThree}>ล้างข้อมูลเลข 3 ตัว</button>
                 <div className='ml-4'>
                     <h1 className='text-lg font-bold mb-4'>กำหนดจำนวนที่จำกัด</h1>
                     <input className='border rounded-md' type='text'

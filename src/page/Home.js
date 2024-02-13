@@ -5,7 +5,7 @@ import Modal from '../components/Modal';
 import FormNum from '../components/FormNum';
 const Home = () => {
     const limit = JSON.parse(localStorage.getItem("limitvalue"));
-    if (limit === undefined){
+    if (limit === undefined) {
         console.log("object")
     }
     const limitint = parseInt(limit)
@@ -13,6 +13,8 @@ const Home = () => {
     const [listThree, setListThree] = useState(null);
     const [showModal, setShowModal] = useState(false)
     const [EditData, setEditData] = useState({})
+    const [sumtwo, setSumTwo] = useState();
+    const [sumthree, setSumThree] = useState();
     const storedUserData = JSON.parse(localStorage.getItem("user"));
     const handleEdit = (id, priceLower, priceUpper, num, type) => {
         setEditData({
@@ -59,17 +61,96 @@ const Home = () => {
             console.error('Error:', error.message);
         }
     };
+    const sumTwo = async () => {
+        try {
+            const fetchData = await fetch(`${process.env.REACT_APP_SERVER_DOMIN}/api/num/sumTwo/${storedUserData.data.id}`, {
+                method: 'GET',
+            });
+            if (!fetchData.ok) {
+                throw new Error('not found data')
+            }
+            const dataRes = await fetchData.json();
+            setSumTwo(dataRes[0])
+        } catch (e) {
+            console.error(e)
+        }
+    }
+    const sumThree = async () => {
+        try {
+            const fetchData = await fetch(`${process.env.REACT_APP_SERVER_DOMIN}/api/num/sumThree/${storedUserData.data.id}`, {
+                method: 'GET',
+            });
+            if (!fetchData.ok) {
+                throw new Error('not found data')
+            }
+            const dataRes = await fetchData.json();
+            setSumThree(dataRes[0])
+        } catch (e) {
+            console.error(e)
+        }
+    }
+
     useEffect(() => {
+        sumTwo();
+        sumThree();
         fecthListTwo();
         fecthListThree()
     }, []); // Empty dependency array means this effect runs once after the initial render
+
+
+    const deleteTwo = async (e) => {
+        try {
+            const fetchData = await fetch(`${process.env.REACT_APP_SERVER_DOMIN}/api/num/deletetwo/${storedUserData.data.id}`, {
+                method: 'DELETE',
+            });
+
+            if (!fetchData.ok) {
+                throw new Error('not found data');
+            }
+
+            const dataRes = await fetchData.json();
+            if (fetchData.ok) {
+                toast.success(dataRes.message)
+                window.location.reload();
+            } else {
+                toast.error(dataRes.message)
+            }
+        } catch (error) {
+            console.error('Error:', error.message);
+        }
+    }
+    const deleteThree = async (e) => {
+        try {
+            const fetchData = await fetch(`${process.env.REACT_APP_SERVER_DOMIN}/api/num/deletethree/${storedUserData.data.id}`, {
+                method: 'DELETE',
+            });
+
+            if (!fetchData.ok) {
+                throw new Error('not found data');
+            }
+
+            const dataRes = await fetchData.json();
+            if (fetchData.ok) {
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error('Error:', error.message);
+        }
+    }
+
+
     return (
         <div className='grid grid-cols-2 m-4 justify-between gap-4'>
             <FormNum></FormNum>
             <div className='border min-w-[50%] bg-teal-100 rounded-md shadow-lg' >
                 <div className='grid grid-cols-2 mx-4 my-3 gap-2'>
                     <div className=''>
-                        <h1 className='text-center'>เลข 2 ตัว</h1>
+                        <button className='ml-4 mb-4 bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600' onClick={deleteTwo}>ล้างข้อมูลเลข 2 ตัว</button>
+                        <h1 className='text-center'>เลข 2 ตัว </h1>
+                        <div className='flex gap-3 ml-4'>
+                            <p> ยอดรวม บน:{sumtwo ? sumtwo.Upper : <p>0</p>} บาท</p>
+                            <p> ยอดรวม ล่าง:{sumtwo ? sumtwo.Lower : <p>0</p>} บาท</p>
+                        </div>
                         <div className='overflow-y-auto h-[80vh] px-4 mt-4 '>
                             <table class="table-auto w-full bg-white ">
                                 <thead>
@@ -101,7 +182,12 @@ const Home = () => {
                         </div>
                     </div>
                     <div className=''>
+                        <button className='ml-4 mb-4 bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600' onClick={deleteThree}>ล้างข้อมูลเลข 3 ตัว</button>
                         <h1 className='text-center'>เลข 3 ตัว</h1>
+                        <div className='flex gap-3 ml-4'>
+                            <p> ยอดรวม บน:{sumthree ? sumthree.Upper : <p>0</p>} บาท</p>
+                            <p> ยอดรวม ล่าง:{sumthree ? sumthree.Lower : <p>0</p>} บาท</p>
+                        </div>
                         <div className='overflow-y-auto h-[80vh] px-4 mt-4 '>
                             <table class="table-auto w-full bg-white">
                                 <thead>
@@ -129,7 +215,6 @@ const Home = () => {
                                     )}
                                 </tbody>
                             </table>
-
                         </div>
                     </div>
                 </div>

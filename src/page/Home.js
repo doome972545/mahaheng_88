@@ -187,8 +187,10 @@ const Home = () => {
                         <button className='ml-4 mb-4 bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600' onClick={deleteThree}>ล้างข้อมูลเลข 3 ตัว</button>
                         <h1 className='text-center'>เลข 3 ตัว</h1>
                         <div className='flex gap-3 ml-4'>
-                            <p> ยอดรวม บน:{sumthree ? sumthree.Upper : <p>0</p>} บาท</p>
-                            <p> ยอดรวม ล่าง:{sumthree ? sumthree.Lower : <p>0</p>} บาท</p>
+                            <p className='flex gap-3' > ยอดรวม บน:{sumthree ? <p className='text-red-600'>{sumthree.Upper}</p>
+                                : <p>0</p>} บาท</p>
+                            <p className='flex gap-3' > ยอดรวม ล่าง:{sumthree ? <p className='text-red-600'>{sumthree.Lower}</p>
+                                : <p>0</p>} บาท</p>
                         </div>
                         <div className='overflow-y-auto h-[80vh] px-4 mt-4 '>
                             <table class="table-auto w-full bg-white">

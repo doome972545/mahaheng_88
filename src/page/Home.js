@@ -200,6 +200,7 @@ const Home = () => {
                                         <th className='border border-slate-300 text-center'>บน</th>
                                         <th className='border border-slate-300 text-center'>ล่าง</th>
                                         <th className='border border-slate-300 text-center'>แก้ไข</th>
+                                        <th className='border border-slate-300 text-center'>ลบ</th>
                                     </tr>
                                 </thead>
                                 <tbody>

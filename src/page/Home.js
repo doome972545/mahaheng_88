@@ -124,6 +124,27 @@ const Home = () => {
             console.error('Error:', error.message);
         }
     }
+    const deleteZero = async (e) => {
+        try {
+            const fetchData = await fetch(`${process.env.REACT_APP_SERVER_DOMIN}/api/num/deleteZero/${storedUserData.data.id}`, {
+                method: 'DELETE',
+            });
+
+            if (!fetchData.ok) {
+                throw new Error('not found data');
+            }
+
+            const dataRes = await fetchData.json();
+            if (fetchData.ok) {
+                toast.success(dataRes.message)
+                window.location.reload();
+            } else {
+                toast.error(dataRes.message)
+            }
+        } catch (error) {
+            console.error('Error:', error.message);
+        }
+    }
     const deleteThree = async (e) => {
         try {
             const fetchData = await fetch(`${process.env.REACT_APP_SERVER_DOMIN}/api/num/deletethree/${storedUserData.data.id}`, {
@@ -336,6 +357,16 @@ const Home = () => {
                                                 <td class={`border border-slate-300 text-center text-lg ${el.priceUpper > limitint ? 'text-red-500' : ""}`}>{el.priceUpper}</td>
                                                 <td class={`border border-slate-300 text-center text-lg ${el.priceLower > limitint ? 'text-red-500' : ""}`}>{el.priceLower}</td>
                                                 <td class={` text-center flex justify-center text-2xl cursor-pointer`} onClick={(() => handleEdit(el.id, el.priceLower, el.priceUpper, el.num, 'two'))} ><CiEdit /></td>
+                                                {
+                                                    el.num === '' ?
+                                                        <td>
+                                                            <div className='bg-red-400 text-white rounded-md mx-auto cursor-pointer pl-4 py-1' onClick={deleteZero}>
+                                                                <MdDelete />
+                                                            </div>
+                                                        </td>
+                                                        : ""
+                                                }
+                                                {/* <td class={` text-center flex justify-center text-2xl cursor-pointer`} onClick={(() => handleEdit(el.id, el.priceLower, el.priceUpper, el.num, 'two'))} ><CiEdit /></td> */}
                                                 <td></td>
                                             </tr>
                                         ))
@@ -374,6 +405,15 @@ const Home = () => {
                                                 <td class={`border border-slate-300 text-center text-lg ${el.priceUpper > limitint ? 'text-red-500' : ""}`}>{el.priceUpper}</td>
                                                 <td class={`border border-slate-300 text-center text-lg ${el.priceLower > limitint ? 'text-red-500' : ""}`}>{el.priceLower}</td>
                                                 <td class={` text-center flex justify-center text-2xl cursor-pointer`} onClick={(() => handleEdit(el.id, el.priceLower, el.priceUpper, el.num, 'two'))} ><CiEdit /></td>
+                                                {
+                                                    el.num === '' ?
+                                                        <td>
+                                                            <div className='bg-red-400 text-white rounded-md mx-auto cursor-pointer pl-4 py-1' onClick={deleteZero}>
+                                                                <MdDelete />
+                                                            </div>
+                                                        </td>
+                                                        : ""
+                                                }
                                             </tr>
                                         ))
                                     ) : (

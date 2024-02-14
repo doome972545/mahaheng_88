@@ -179,14 +179,11 @@ const Home = () => {
             <div className='border min-w-[50%] bg-teal-100 rounded-md shadow-lg' >
                 <div className='mx-4 my-3 bg-white rounded-md shadow-md'>
                     <h1 className='text-center'>อัพเดทล่าสุด</h1>
-                    <div className='flex justify-around'>
-                        <div>เลข 2 ตัว</div>
-                        <div>เลข 3 ตัว</div>
-                    </div>
-                    <div className='flex justify-between m-3'>
+
+                    <div className=' flex flex-col lg:flex-row justify-between m-3'>
                         {
                             notifyTwo ?
-                                <div className='flex gap-20 shadow-lg border rounded-md p-3'>
+                                <div className='flex gap-16 lg:gap-20 shadow-lg border rounded-md p-3'>
                                     <div>
                                         <p>เลข</p>
                                         {
@@ -248,8 +245,9 @@ const Home = () => {
                                 : <p className='text-center text-red-500'>ไม่มีข้อมูลล่าสุด</p>
                         }
                         {
+
                             notifyThree ?
-                                <div className='flex gap-20 shadow-lg border rounded-md p-3 '>
+                                <div className='flex gap-16 lg:gap-20 shadow-lg border rounded-md p-3 '>
                                     <div className=''>
                                         <p>เลข</p>
                                         {

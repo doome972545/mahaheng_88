@@ -143,7 +143,7 @@ const Home = () => {
         }
     }
     const UserId = storedUserData.data.id
-    const [notify, setNotify] = useState({ dataArray: [] }); // Initialize with an object having dataArray property
+    const [notifyTwo, setNotify] = useState({ dataArray: [] }); // Initialize with an object having dataArray property
 
     // Fetch user data upon component mount
     useEffect(() => {
@@ -156,46 +156,162 @@ const Home = () => {
         }
         fetchUserData();
     }, []);
+    const [notifyThree, setNotifyThree] = useState({ dataArray: [] }); // Initialize with an object having dataArray property
+
+    // Fetch user data upon component mount
+    useEffect(() => {
+        async function fetchUserData() {
+            const userRef = ref(db, 'notify/three/' + UserId);
+            onValue(userRef, (snapshot) => {
+                const data = snapshot.val();
+                setNotifyThree(data || { dataArray: [] }); // Ensure data or initialize with an empty array
+            });
+        }
+        fetchUserData();
+    }, []);
+    const UpTwo = parseInt(notifyTwo.priceUpper)
+    const LowTwo = parseInt(notifyTwo.priceLower)
+    const UpThree = parseInt(notifyThree.priceUpper)
+    const LowThree = parseInt(notifyThree.priceLower)
     return (
         <div className='grid grid-cols-2 m-4 justify-between gap-4'>
             <FormNum></FormNum>
             <div className='border min-w-[50%] bg-teal-100 rounded-md shadow-lg' >
-                <div className='mx-4 my-3 bg-white'>
+                <div className='mx-4 my-3 bg-white rounded-md shadow-md'>
                     <h1 className='text-center'>อัพเดทล่าสุด</h1>
-                    {
-                        notify ?
-                            <div className='flex justify-around'>
-                                <div>
-                                    <p>เลข</p>
-                                    {
-                                        notify ? (
-                                            // Use .map to iterate and render data from each object in 'notify'
-                                            notify.dataArray.map((el, index) => (
-                                                <div key={index}>
-                                                    <p>{el}</p>
-                                                    {/* Render other data from 'el' */}
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <p className="text-center text-red-500">No recent data</p>
-                                        )
-                                    }
+                    <div className='flex justify-around'>
+                        <div>เลข 2 ตัว</div>
+                        <div>เลข 3 ตัว</div>
+                    </div>
+                    <div className='flex justify-between m-3'>
+                        {
+                            notifyTwo ?
+                                <div className='flex gap-20 shadow-lg border rounded-md p-3'>
+                                    <div>
+                                        <p>เลข</p>
+                                        {
+                                            notifyTwo ? (
+                                                // Use .map to iterate and render data from each object in 'notifyTwo'
+                                                notifyTwo.dataArray.map((el, index) => (
+                                                    <div key={index}>
+                                                        <p>{el}</p>
+                                                        {/* Render other data from 'el' */}
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <p className="text-center text-red-500">No recent data</p>
+                                            )
+                                        }
+                                    </div>
+                                    <div>
+                                        <p>บน</p>
+                                        {
+                                            notifyTwo ? <p>{notifyTwo.priceUpper}</p> : ""
+                                        }
+                                    </div>
+                                    <div>
+                                        <p>ล่าง</p>
+                                        {
+                                            notifyTwo ? <p>{notifyTwo.priceLower}</p> : ""
+                                        }
+                                        <p className='text-end '>
+                                            <p>ยอดรวม</p>
+                                            {
+                                                notifyTwo ?
+                                                    <>
+                                                        {
+                                                            notifyTwo.priceUpper && notifyTwo.priceLower ?
+                                                                <p>{notifyTwo.priceUpper} x {notifyTwo.priceLower} บาท</p>
+                                                                :
+                                                                <>
+                                                                    {
+                                                                        notifyTwo.priceUpper ?
+                                                                            <p>บน {notifyTwo.priceUpper} บาท</p>
+                                                                            :
+                                                                            <>
+                                                                                {
+                                                                                    notifyTwo.priceLower ?
+                                                                                        <p>ล่าง {notifyTwo.priceLower} บาท</p>
+                                                                                        : ""
+                                                                                }
+                                                                            </>
+                                                                    }
+                                                                </>
+                                                        }
+                                                    </>
+                                                    : ''
+                                            }
+                                            <p className='flex gap-2'>รวม <p className='text-red-600'>{UpTwo + LowTwo || UpTwo || LowTwo || 0}</p> บาท</p>
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p>บน</p>
-                                    {
-                                        notify ? <p>{notify.priceUpper}</p>:""
-                                    }
+                                : <p className='text-center text-red-500'>ไม่มีข้อมูลล่าสุด</p>
+                        }
+                        {
+                            notifyThree ?
+                                <div className='flex gap-20 shadow-lg border rounded-md p-3 '>
+                                    <div className=''>
+                                        <p>เลข</p>
+                                        {
+                                            notifyThree ? (
+                                                // Use .map to iterate and render data from each object in 'notifyThree'
+                                                notifyThree.dataArray.map((el, index) => (
+                                                    <div key={index}>
+                                                        <p>{el}</p>
+                                                        {/* Render other data from 'el' */}
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <p className="text-center text-red-500">No recent data</p>
+                                            )
+                                        }
+                                    </div>
+                                    <div>
+                                        <p>บน</p>
+                                        {
+                                            notifyThree ? <p>{notifyThree.priceUpper}</p> : ""
+                                        }
+                                    </div>
+                                    <div>
+                                        <p>ล่าง</p>
+                                        {
+                                            notifyThree ? <p>{notifyThree.priceLower}</p> : ""
+                                        }
+                                        <p className='text-end '>
+                                            <p>ยอดรวม</p>
+                                            {
+                                                notifyThree ?
+                                                    <>
+                                                        {
+                                                            notifyThree.priceUpper && notifyThree.priceLower ?
+                                                                <p>{notifyThree.priceUpper} x {notifyThree.priceLower} บาท</p>
+                                                                :
+                                                                <>
+                                                                    {
+                                                                        notifyThree.priceUpper ?
+                                                                            <p>บน {notifyThree.priceUpper} บาท</p>
+                                                                            :
+                                                                            <>
+                                                                                {
+                                                                                    notifyThree.priceLower ?
+                                                                                        <p>ล่าง {notifyThree.priceLower} บาท</p>
+                                                                                        : ""
+                                                                                }
+                                                                            </>
+                                                                    }
+                                                                </>
+                                                        }
+                                                    </>
+                                                    : ''
+                                            }
+                                            <p className='flex gap-2'>รวม <p className='text-red-600'>{UpThree + LowThree || UpThree || LowThree || 0}</p> บาท</p>
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p>ล่าง</p>
-                                    {
-                                        notify ? <p>{notify.priceLower}</p>:""
-                                    }
-                                </div>
-                            </div>
-                            : <p className='text-center text-red-500'>ไม่มีข้อมูลล่าสุด</p>
-                    }
+                                : <p className='text-center text-red-500'>ไม่มีข้อมูลล่าสุด</p>
+                        }
+                    </div>
+
                 </div>
                 <div className='grid grid-cols-2 mx-4 my-3 gap-2'>
                     <div className=''>

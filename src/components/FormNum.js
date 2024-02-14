@@ -1,16 +1,39 @@
 import React, { useState } from 'react'
 import toast from 'react-hot-toast';
+import app from '../config/firebase'
+import { getDatabase, ref, set, onValue } from "firebase/database";
 
 const FormNum = () => {
+    const db = getDatabase(app);
     const limit = JSON.parse(localStorage.getItem("limitvalue"));
     const limitint = parseInt(limit)
     const storedUserData = JSON.parse(localStorage.getItem("user"));
     const [selectItem, setSelectItem] = useState()
     const [inputValue, setInputValue] = useState('');
-    const [dataArray, setDataArray] = useState([]);
-    const [priceUpper, setPriceUpper] = useState();
-    const [priceLower, setPriceLower] = useState();
+    const [dataArray, setDataArray] = useState({});
+    const [priceUpper, setPriceUpper] = useState('');
+    const [priceLower, setPriceLower] = useState('');
     const [limitValue, setLimitValue] = useState('')
+    const username = storedUserData.data.username
+    const UserId = storedUserData.data.id
+    const createTwoNotify = async() => {
+        const userRef = ref(db, 'notify/two/' + UserId);
+        await set(userRef, {
+            username,
+            dataArray,
+            priceUpper,
+            priceLower
+        });
+    };
+    const createThreeNotify = async() => {
+        const userRef = ref(db, 'notify/three/' + UserId);
+        await set(userRef, {
+            username,
+            dataArray,
+            priceUpper,
+            priceLower
+        });
+    };
     const handlelimitvalChange = (event) => {
         const inputValue = event.target.value;
         setLimitValue(inputValue);
@@ -43,6 +66,7 @@ const FormNum = () => {
         event.preventDefault();
         try {
             if (selectItem === 'two') {
+                createTwoNotify()
                 const saveVal = await fetch(`${process.env.REACT_APP_SERVER_DOMIN}/api/num/savetwo/${storedUserData.data.id}`, {
                     method: 'POST',
                     headers: {
@@ -54,12 +78,12 @@ const FormNum = () => {
                         priceLower,
                     }),
                 });
-
                 if (saveVal.ok) {
-                    toast.success("ssssss")
+                    toast.success("บันทึกข้อมูล")
                     window.location.reload();
                 }
             } else if (selectItem === 'three') {
+                createThreeNotify()
                 const saveValThree = await fetch(`${process.env.REACT_APP_SERVER_DOMIN}/api/num/savethree/${storedUserData.data.id}`, {
                     method: 'POST',
                     headers: {

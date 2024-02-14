@@ -3,7 +3,12 @@ import { CiEdit } from "react-icons/ci";
 import toast from 'react-hot-toast';
 import Modal from '../components/Modal';
 import FormNum from '../components/FormNum';
+import { MdDelete } from "react-icons/md";
+import { getDatabase, onValue, ref } from 'firebase/database';
+import app from '../config/firebase';
 const Home = () => {
+    const db = getDatabase(app);
+
     const limit = JSON.parse(localStorage.getItem("limitvalue"));
     if (limit === undefined) {
         console.log("object")
@@ -137,20 +142,66 @@ const Home = () => {
             console.error('Error:', error.message);
         }
     }
+    const UserId = storedUserData.data.id
+    const [notify, setNotify] = useState({ dataArray: [] }); // Initialize with an object having dataArray property
 
-
+    // Fetch user data upon component mount
+    useEffect(() => {
+        async function fetchUserData() {
+            const userRef = ref(db, 'notify/two/' + UserId);
+            onValue(userRef, (snapshot) => {
+                const data = snapshot.val();
+                setNotify(data || { dataArray: [] }); // Ensure data or initialize with an empty array
+            });
+        }
+        fetchUserData();
+    }, []);
     return (
         <div className='grid grid-cols-2 m-4 justify-between gap-4'>
             <FormNum></FormNum>
             <div className='border min-w-[50%] bg-teal-100 rounded-md shadow-lg' >
+                <div className='mx-4 my-3 bg-white'>
+                    <h1 className='text-center'>อัพเดทล่าสุด</h1>
+                    {
+                        notify ?
+                            <div className='flex justify-around'>
+                                <div>
+                                    <p>เลข</p>
+                                    {
+                                        notify ? (
+                                            // Use .map to iterate and render data from each object in 'notify'
+                                            notify.dataArray.map((el, index) => (
+                                                <div key={index}>
+                                                    <p>{el}</p>
+                                                    {/* Render other data from 'el' */}
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <p className="text-center text-red-500">No recent data</p>
+                                        )
+                                    }
+                                </div>
+                                <div>
+                                    <p>บน</p>
+                                    {
+                                        notify ? <p>{notify.priceUpper}</p>:""
+                                    }
+                                </div>
+                                <div>
+                                    <p>ล่าง</p>
+                                    {
+                                        notify ? <p>{notify.priceLower}</p>:""
+                                    }
+                                </div>
+                            </div>
+                            : <p className='text-center text-red-500'>ไม่มีข้อมูลล่าสุด</p>
+                    }
+                </div>
                 <div className='grid grid-cols-2 mx-4 my-3 gap-2'>
                     <div className=''>
-                        <button className='ml-4 mb-4 bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600' onClick={deleteTwo}>ล้างข้อมูลเลข 2 ตัว</button>
                         <h1 className='text-center'>เลข 2 ตัว </h1>
                         <div className='flex gap-3 ml-4'>
-                            <p className='flex gap-3' > ยอดรวม บน:{sumtwo ? <p className='text-red-600'>{sumtwo.Upper}</p>
-                                : <p>0</p>} บาท</p>
-                            <p className='flex gap-3' > ยอดรวม ล่าง:{sumtwo ? <p className='text-red-600'>{sumtwo.Lower}</p>
+                            <p className='flex gap-3' > ยอดรวม {sumtwo ? <p className='text-red-600'>{sumtwo.Upper + sumtwo.Lower}</p>
                                 : <p>0</p>} บาท</p>
                         </div>
                         <div className='overflow-y-auto h-[80vh] px-4 mt-4 '>
@@ -160,7 +211,7 @@ const Home = () => {
                                         <th className='border border-slate-300 text-center'>เลข</th>
                                         <th className='border border-slate-300 text-center'>บน</th>
                                         <th className='border border-slate-300 text-center'>ล่าง</th>
-                                        <th className='border border-slate-300 text-center'>แก้ไข</th>
+                                        <th className='border border-slate-300 text-center'>actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -171,6 +222,7 @@ const Home = () => {
                                                 <td class={`border border-slate-300 text-center text-lg ${el.priceUpper > limitint ? 'text-red-500' : ""}`}>{el.priceUpper}</td>
                                                 <td class={`border border-slate-300 text-center text-lg ${el.priceLower > limitint ? 'text-red-500' : ""}`}>{el.priceLower}</td>
                                                 <td class={` text-center flex justify-center text-2xl cursor-pointer`} onClick={(() => handleEdit(el.id, el.priceLower, el.priceUpper, el.num, 'two'))} ><CiEdit /></td>
+                                                <td></td>
                                             </tr>
                                         ))
                                     ) : (
@@ -182,14 +234,12 @@ const Home = () => {
                             </table>
 
                         </div>
+                        <button className='ml-4 mb-4 bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600' onClick={deleteTwo}>ล้างข้อมูลเลข 2 ตัว</button>
                     </div>
                     <div className=''>
-                        <button className='ml-4 mb-4 bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600' onClick={deleteThree}>ล้างข้อมูลเลข 3 ตัว</button>
                         <h1 className='text-center'>เลข 3 ตัว</h1>
                         <div className='flex gap-3 ml-4'>
-                            <p className='flex gap-3' > ยอดรวม บน:{sumthree ? <p className='text-red-600'>{sumthree.Upper}</p>
-                                : <p>0</p>} บาท</p>
-                            <p className='flex gap-3' > ยอดรวม ล่าง:{sumthree ? <p className='text-red-600'>{sumthree.Lower}</p>
+                            <p className='flex gap-3' > ยอดรวม{sumthree ? <p className='text-red-600'>{sumthree.Upper + sumthree.Lower}</p>
                                 : <p>0</p>} บาท</p>
                         </div>
                         <div className='overflow-y-auto h-[80vh] px-4 mt-4 '>
@@ -199,8 +249,7 @@ const Home = () => {
                                         <th className='border border-slate-300 text-center'>เลข</th>
                                         <th className='border border-slate-300 text-center'>บน</th>
                                         <th className='border border-slate-300 text-center'>ล่าง</th>
-                                        <th className='border border-slate-300 text-center'>แก้ไข</th>
-                                        <th className='border border-slate-300 text-center'>ลบ</th>
+                                        <th className='border border-slate-300 text-center'>actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -220,7 +269,11 @@ const Home = () => {
                                     )}
                                 </tbody>
                             </table>
+
+
                         </div>
+
+                        <button className='ml-4 mb-4 bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600' onClick={deleteThree}>ล้างข้อมูลเลข 3 ตัว</button>
                     </div>
                 </div>
             </div>

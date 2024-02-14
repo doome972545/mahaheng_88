@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import toast from 'react-hot-toast';
+import { MdDelete } from 'react-icons/md';
 
 const Modal = ({ show, onClose, data }) => {
     const [priceUpper, setPriceUpper] = useState('')
@@ -85,6 +86,7 @@ const Modal = ({ show, onClose, data }) => {
                                     </div>
                                     : ""
                             }
+                            <MdDelete />
                         </div>
                     </form>
 

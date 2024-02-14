@@ -30,9 +30,9 @@ const Login = () => {
       localStorage.setItem("user", JSON.stringify(dataRes));
       toast.success(dataRes.message)
       setTimeout(() => {
+        Navigate('/home');
         window.location.reload();
-        Navigate('/');
-      }, 500); // Adjust the delay as needed
+      }, 1000); // Adjust the delay as needed
     } else {
       toast.error(dataRes.message)
     }

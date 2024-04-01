@@ -207,19 +207,16 @@ const Home = () => {
                                 <div className='flex gap-16 lg:gap-20 shadow-lg border rounded-md p-3'>
                                     <div>
                                         <p>เลข</p>
-                                        {
-                                            notifyTwo ? (
-                                                // Use .map to iterate and render data from each object in 'notifyTwo'
-                                                notifyTwo.dataArray.map((el, index) => (
-                                                    <div key={index}>
-                                                        <p>{el}</p>
-                                                        {/* Render other data from 'el' */}
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                <p className="text-center text-red-500">No recent data</p>
-                                            )
-                                        }
+                                        {notifyTwo && notifyTwo.dataArray ? (
+                                            notifyTwo.dataArray.map((el, index) => (
+                                                <div key={index}>
+                                                    <p>{el}</p>
+                                                    {/* Render other data from 'el' */}
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <p className="text-center text-red-500">No recent data</p>
+                                        )}
                                     </div>
                                     <div>
                                         <p>บน</p>

@@ -200,8 +200,7 @@ const Home = () => {
             <div className='border min-w-[50%] bg-teal-100 rounded-md shadow-lg' >
                 <div className='mx-4 my-3 bg-white rounded-md shadow-md'>
                     <h1 className='text-center'>อัพเดทล่าสุด</h1>
-
-                    <div className=' flex flex-col lg:flex-row justify-between m-3'>
+                    <div className='grid grid-cols-2 lg:flex-row justify-between m-3'>
                         {
                             notifyTwo ?
                                 <div className='flex gap-16 lg:gap-20 shadow-lg border rounded-md p-3'>

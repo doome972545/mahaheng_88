@@ -86,7 +86,7 @@ const Modal = ({ show, onClose, data }) => {
                                     </div>
                                     : ""
                             }
-                            <MdDelete />
+                            {/* <MdDelete /> */}
                         </div>
                     </form>
 

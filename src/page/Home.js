@@ -103,27 +103,7 @@ const Home = () => {
     }, []); // Empty dependency array means this effect runs once after the initial render
 
 
-    const deleteTwo = async (e) => {
-        try {
-            const fetchData = await fetch(`${process.env.REACT_APP_SERVER_DOMIN}/api/num/deletetwo/${storedUserData.data.id}`, {
-                method: 'DELETE',
-            });
 
-            if (!fetchData.ok) {
-                throw new Error('not found data');
-            }
-
-            const dataRes = await fetchData.json();
-            if (fetchData.ok) {
-                toast.success(dataRes.message)
-                window.location.reload();
-            } else {
-                toast.error(dataRes.message)
-            }
-        } catch (error) {
-            console.error('Error:', error.message);
-        }
-    }
     const deleteZero = async (e) => {
         try {
             const fetchData = await fetch(`${process.env.REACT_APP_SERVER_DOMIN}/api/num/deleteZero/${storedUserData.data.id}`, {
@@ -145,24 +125,7 @@ const Home = () => {
             console.error('Error:', error.message);
         }
     }
-    const deleteThree = async (e) => {
-        try {
-            const fetchData = await fetch(`${process.env.REACT_APP_SERVER_DOMIN}/api/num/deletethree/${storedUserData.data.id}`, {
-                method: 'DELETE',
-            });
 
-            if (!fetchData.ok) {
-                throw new Error('not found data');
-            }
-
-            const dataRes = await fetchData.json();
-            if (fetchData.ok) {
-                window.location.reload();
-            }
-        } catch (error) {
-            console.error('Error:', error.message);
-        }
-    }
     const UserId = storedUserData.data.id
     const [notifyTwo, setNotify] = useState({ dataArray: [] }); // Initialize with an object having dataArray property
 
@@ -375,7 +338,7 @@ const Home = () => {
                             </table>
 
                         </div>
-                        <button className='ml-4 mb-4 bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600' onClick={deleteTwo}>ล้างข้อมูลเลข 2 ตัว</button>
+                       
                     </div>
                     <div className=''>
                         <h1 className='text-center'>เลข 3 ตัว</h1>
@@ -423,7 +386,7 @@ const Home = () => {
 
                         </div>
 
-                        <button className='ml-4 mb-4 bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600' onClick={deleteThree}>ล้างข้อมูลเลข 3 ตัว</button>
+                       
                     </div>
                 </div>
             </div>

@@ -14,6 +14,8 @@ const FormNum = () => {
   const [priceUpper, setPriceUpper] = useState("");
   const [priceLower, setPriceLower] = useState("");
   const [limitValue, setLimitValue] = useState("");
+  const [confirmTwo, setConfirmTwo] = useState(false);
+  const [confirmThree, setConfirmThree] = useState(false);
   const username = storedUserData.data.username;
   const UserId = storedUserData.data.id;
   const createTwoNotify = async () => {
@@ -161,7 +163,47 @@ const FormNum = () => {
   };
 
   return (
-    <div>
+    <div className="relative">
+      <div
+        className={`${
+          confirmTwo ? "flex" : "hidden"
+        } fixed inset-0  justify-center h-screen w-screen`}
+      >
+        <div className="flex justify-evenly items-center bg-gray-600 w-[50vw] max-h-[10vh] mt-52 rounded-md">
+          <button
+            onClick={() => deleteTwo()}
+            className="bg-green-500 px-2 py-1 rounded-md text-white hover:bg-green-600"
+          >
+            ยืนยัน
+          </button>
+          <button
+            onClick={() => setConfirmTwo(false)}
+            className="bg-red-500 px-2 py-1 rounded-md text-white hover:bg-red-600"
+          >
+            ยกเลิก
+          </button>
+        </div>
+      </div>
+      <div
+        className={`${
+          confirmThree ? "flex" : "hidden"
+        } fixed inset-0  justify-center h-screen w-screen`}
+      >
+        <div className="flex justify-evenly items-center bg-gray-600 w-[50vw] max-h-[10vh] mt-52 rounded-md">
+          <button
+            onClick={() => deleteThree()}
+            className="bg-green-500 px-2 py-1 rounded-md text-white hover:bg-green-600"
+          >
+            ยืนยัน
+          </button>
+          <button
+            onClick={() => setConfirmThree(false)}
+            className="bg-red-500 px-2 py-1 rounded-md text-white hover:bg-red-600"
+          >
+            ยกเลิก
+          </button>
+        </div>
+      </div>
       <div className="border rounded-md shadow-lg bg-yellow-50 min-w-[50%] pb-4">
         <h1 className="text-center my-2 text-2xl ">ใส่ตัวเลข</h1>
         <div className="flex gap-2 mx-4">
@@ -283,13 +325,13 @@ const FormNum = () => {
         <div className="mt-4">
           <button
             className="ml-4 mb-4 bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
-            onClick={deleteTwo}
+            onClick={() => setConfirmTwo(true)}
           >
             ล้างข้อมูลเลข 2 ตัว
           </button>
           <button
             className="ml-4 mb-4 bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
-            onClick={deleteThree}
+            onClick={() => setConfirmThree(true)}
           >
             ล้างข้อมูลเลข 3 ตัว
           </button>

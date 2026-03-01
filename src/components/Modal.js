@@ -1,6 +1,6 @@
 import React, {  useState } from 'react'
 import toast from 'react-hot-toast';
-import { MdDelete } from 'react-icons/md';
+// import { MdDelete } from 'react-icons/md';
 
 const Modal = ({ show, onClose, data }) => {
     const [priceUpper, setPriceUpper] = useState('')

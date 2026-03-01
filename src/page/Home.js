@@ -231,17 +231,17 @@ const Home = () => {
                                     <div className=''>
                                         <p>เลข</p>
                                         {
-                                            notifyThree ? (
-                                                // Use .map to iterate and render data from each object in 'notifyThree'
-                                                notifyThree.dataArray.map((el, index) => (
-                                                    <div key={index}>
-                                                        <p>{el}</p>
-                                                        {/* Render other data from 'el' */}
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                <p className="text-center text-red-500">No recent data</p>
-                                            )
+                                            // notifyThree ? (
+                                            //     // Use .map to iterate and render data from each object in 'notifyThree'
+                                            //     notifyThree.dataArray.map((el, index) => (
+                                            //         <div key={index}>
+                                            //             <p>{el}</p>
+                                            //             {/* Render other data from 'el' */}
+                                            //         </div>
+                                            //     ))
+                                            // ) : (
+                                            //     <p className="text-center text-red-500">No recent data</p>
+                                            // )
                                         }
                                     </div>
                                     <div>

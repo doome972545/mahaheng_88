@@ -68,7 +68,6 @@ const FormNum = () => {
     event.preventDefault();
     try {
       if (selectItem === "two") {
-        console.log(dataArray);
         for (let index = 0; index < dataArray.length; index++) {
           const element = dataArray[index];
           if (!/^\d+$/.test(element) || element.length !== 2) {
@@ -97,7 +96,6 @@ const FormNum = () => {
           window.location.reload();
         }
       } else if (selectItem === "three") {
-        console.log(dataArray);
         for (let index = 0; index < dataArray.length; index++) {
           const element = dataArray[index];
 
@@ -123,6 +121,7 @@ const FormNum = () => {
         );
         // Proceed with the next steps after the second fetch
         if (saveValThree.ok) {
+          toast.success("บันทึกข้อมูล");
           window.location.reload();
         }
       } else {

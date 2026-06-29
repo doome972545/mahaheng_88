@@ -68,6 +68,15 @@ const FormNum = () => {
     event.preventDefault();
     try {
       if (selectItem === "two") {
+        console.log(dataArray);
+        for (let index = 0; index < dataArray.length; index++) {
+          const element = dataArray[index];
+          if (!/^\d+$/.test(element) || element.length !== 2) {
+            toast.error("กรุณากรอกข้อมูลให้ถูกต้อง");
+            return;
+          }
+        }
+
         createTwoNotify();
         const saveVal = await fetch(
           `${process.env.REACT_APP_SERVER_DOMIN}/api/num/savetwo/${storedUserData.data.id}`,
@@ -81,13 +90,22 @@ const FormNum = () => {
               priceUpper,
               priceLower,
             }),
-          }
+          },
         );
         if (saveVal.ok) {
           toast.success("บันทึกข้อมูล");
           window.location.reload();
         }
       } else if (selectItem === "three") {
+        console.log(dataArray);
+        for (let index = 0; index < dataArray.length; index++) {
+          const element = dataArray[index];
+
+          if (!/^\d+$/.test(element) || element.length !== 3) {
+            toast.error("กรุณากรอกข้อมูลให้ถูกต้อง");
+            return;
+          }
+        }
         createThreeNotify();
         const saveValThree = await fetch(
           `${process.env.REACT_APP_SERVER_DOMIN}/api/num/savethree/${storedUserData.data.id}`,
@@ -101,7 +119,7 @@ const FormNum = () => {
               priceUpper,
               priceLower,
             }),
-          }
+          },
         );
         // Proceed with the next steps after the second fetch
         if (saveValThree.ok) {
@@ -122,7 +140,7 @@ const FormNum = () => {
         `${process.env.REACT_APP_SERVER_DOMIN}/api/num/deletetwo/${storedUserData.data.id}`,
         {
           method: "DELETE",
-        }
+        },
       );
 
       if (!fetchData.ok) {
@@ -146,7 +164,7 @@ const FormNum = () => {
         `${process.env.REACT_APP_SERVER_DOMIN}/api/num/deletethree/${storedUserData.data.id}`,
         {
           method: "DELETE",
-        }
+        },
       );
 
       if (!fetchData.ok) {

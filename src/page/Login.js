@@ -38,53 +38,49 @@ const Login = () => {
     }
   };
   return (
-    <div className='p-4 flex flex-col min-h-screen'>
-      <div className='flex items-center justify-around'>
-        <div className='min-w-[45vh] md:min-w-[50vh]  lg:min-w-[75vh] p-4 bg-white rounded-md border shadow-md mt-20 flex flex-col justify-center'>
-          <h1 className='text-center font-bold text-2xl'>เข้าสู่ระบบ เช็คยอดหวย</h1>
-          <form onSubmit={handleSubmit} className='mt-4'>
-            <div className='mb-4'>
-              <div className='input-container '>
-                <label htmlFor='email'>ชื่อผู้ใช้</label>
-                <input
-                  type='text'
-                  id='username'
-                  name='email'
-                  value={username}
-                  onChange={handleEmailChange}
-                  className='p-2 border md:p-4 lg:p-2 w-full focus:outline-none  rounded-md '
-                  required
-                  placeholder='username'
-                />
-              </div>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100 px-4 py-10">
+      <div className="card w-full max-w-md">
+        <div className="card-body">
+          <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-indigo-600 text-lg font-bold text-white">
+            88
+          </div>
+          <h1 className="mt-4 text-center text-xl font-bold">เข้าสู่ระบบ</h1>
+          <p className="muted mt-1 text-center">ระบบเช็คยอดหวย</p>
+          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            <div>
+              <label className="label" htmlFor="username">ชื่อผู้ใช้</label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                value={username}
+                onChange={handleEmailChange}
+                className="input"
+                required
+                placeholder="username"
+              />
             </div>
-            <div className='mb-4'>
-              <div className='input-container'>
-                <label htmlFor='password'>รหัสผ่าน</label>
-                <input
-                  type='password'
-                  id='password'
-                  name='password'
-                  value={password}
-                  onChange={handlePasswordChange}
-                  className='p-2 border md:p-4 lg:p-2 w-full focus:outline-none  rounded-md '
-                  required
-                  placeholder='password'
-                />
-              </div>
+            <div>
+              <label className="label" htmlFor="password">รหัสผ่าน</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={password}
+                onChange={handlePasswordChange}
+                className="input"
+                required
+                placeholder="password"
+              />
             </div>
-            <div className=''>
-              <button
-                type='submit'
-                className='mt-4  underline bg-indigo-900 hover:bg-indigo-950 text-white rounded-md px-3 py-2 mr-4 w-full'
-              >
-                เข้าสู่ระบบ
-              </button>
-            </div>
+            <button type="submit" className="btn-primary w-full">เข้าสู่ระบบ</button>
           </form>
-          <Link to={'/register'}
-            className='mt-4 underline bg-slate-400 hover:bg-slate-500 text-white text-center rounded-md px-3 py-2 mr-4 w-full'
-          >
+          <div className="my-5 flex items-center gap-3">
+            <div className="h-px flex-1 bg-slate-200" />
+            <span className="muted text-xs">หรือ</span>
+            <div className="h-px flex-1 bg-slate-200" />
+          </div>
+          <Link to={'/register'} className="btn-ghost w-full">
             ลงทะเบียน
           </Link>
         </div>

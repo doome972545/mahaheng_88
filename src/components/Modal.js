@@ -1,8 +1,8 @@
 import React, {  useState } from 'react'
 import toast from 'react-hot-toast';
-// import { MdDelete } from 'react-icons/md';
+import { IoClose } from 'react-icons/io5';
 
-const Modal = ({ show, onClose, data }) => {
+const Modal = ({ show, onClose, data, onSaved }) => {
     const [priceUpper, setPriceUpper] = useState('')
     const [priceLower, setPriceLower] = useState('')
     const handleChangePriceUpper = (e) => {
@@ -15,82 +15,96 @@ const Modal = ({ show, onClose, data }) => {
     var num = data.num
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (data.type === 'two') {
-            const fetchData = await fetch(`${process.env.REACT_APP_SERVER_DOMIN}/api/num/updatetwo/${storedUserData.data.id}`, {
-                method: 'POST',
-                headers: {
-                    'content-type': 'application/json',
+        const endpoint = data.type === "two" ? "updatetwo" : "updatethree";
+        try {
+            const fetchData = await fetch(
+                `${process.env.REACT_APP_SERVER_DOMIN}/api/num/${endpoint}/${storedUserData.data.id}`,
+                {
+                    method: "POST",
+                    headers: { "content-type": "application/json" },
+                    body: JSON.stringify({ num, priceUpper, priceLower }),
                 },
-                body: JSON.stringify({
-                    num,
-                    priceUpper,
-                    priceLower,
-                }),
-            });
+            );
             const dataRes = await fetchData.json();
-            toast.success(dataRes.message)
-        } else {
-            const fetchData = await fetch(`${process.env.REACT_APP_SERVER_DOMIN}/api/num/updatethree/${storedUserData.data.id}`, {
-                method: 'POST',
-                headers: {
-                    'content-type': 'application/json',
-                },
-                body: JSON.stringify({
-                    num,
-                    priceUpper,
-                    priceLower,
-                }),
-            });
-            const dataRes = await fetchData.json();
-            toast.success(dataRes.message)
+            if (!fetchData.ok) {
+                toast.error(dataRes.message || "แก้ไขข้อมูลไม่สำเร็จ");
+                return;
+            }
+            toast.success(dataRes.message);
+            setPriceUpper("");
+            setPriceLower("");
+            // onSaved before onClose so the refetch is already in flight when
+            // the dialog unmounts
+            onSaved();
+            onClose();
+        } catch (error) {
+            console.error("Error:", error.message);
+            toast.error("แก้ไขข้อมูลไม่สำเร็จ");
         }
-        setPriceUpper('')
-        setPriceLower('')
-        window.location.reload();
     };
     if (!show) return null;
     return (
-        <div className='h-screen' >
-            <div className='fixed inset-0 bg-black bg-opacity-25 backdrop-blur-sm flex justify-center'>
-                <div className='bg-white min-w-[50vh] max-h-[50vh] mt-14 rounded-md'>
-                    <div className='flex justify-end'>
-                        <div></div>
-                        <h2 className='text-center text-2xl mb-3 mr-14'>แก้ไขข้อมูล</h2>
-                        <button onClick={onClose} className=' text-lg bg-red-500 text-white px-3 my-1 mr-2 rounded-md'>กลับ</button>
-                    </div>
-                    <div className='ml-4 flex gap-2 mb-4'>
-                        <div className='flex gap-2 text-xl'>
-                            <p>เลข:</p>
-                            <p>{data.num}</p>
-                        </div>
-                        <div className='flex gap-2 text-xl'>
-                            <p>บน:</p>
-                            <p>{data.priceUpper}</p>
-                        </div>
-                        <div className='flex gap-2 text-xl'>
-                            <p>ล่าง:</p>
-                            <p>{data.priceLower}</p>
-                        </div>
-
-                    </div>
-                    <form onSubmit={handleSubmit}>
-                        <div className='flex flex-col'>
-                            <p className='ml-4 text-xl mb-3'>บน:</p>
-                            <input type="text" className='border-2 mx-4 mb-4 rounded-md shadow-md p-2' value={priceUpper} onChange={handleChangePriceUpper} />
-                            <p className='ml-4 text-xl mb-3'>ล่าง:</p>
-                            <input type="text" className='border-2 mx-4 mb-4 rounded-md shadow-md p-2' value={priceLower} onChange={handleChangePriceLower} />
-                            {
-                                priceUpper || priceLower ?
-                                    <div className='mx-auto my-auto'>
-                                        <button className='bg-green-500 text-white px-3 py-2 rounded-md '>ยืนยันการแก้ไข</button>
-                                    </div>
-                                    : ""
-                            }
-                            {/* <MdDelete /> */}
-                        </div>
-                    </form>
-
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 backdrop-blur-sm sm:items-center">
+            <div className="card w-full max-w-md">
+                <div className="card-head">
+                    <h2 className="card-title">แก้ไขข้อมูล</h2>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="grid h-8 w-8 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                        aria-label="ปิด"
+                    >
+                        <IoClose />
+                    </button>
                 </div>
+                <div className="grid grid-cols-3 gap-2 border-b border-slate-100 px-5 py-4 text-center">
+                    <div>
+                        <p className="muted text-xs">เลข</p>
+                        <p className="mt-0.5 font-semibold tabular-nums">{data.num || "—"}</p>
+                    </div>
+                    <div>
+                        <p className="muted text-xs">บน</p>
+                        <p className="mt-0.5 font-semibold tabular-nums">{data.priceUpper || "—"}</p>
+                    </div>
+                    <div>
+                        <p className="muted text-xs">ล่าง</p>
+                        <p className="mt-0.5 font-semibold tabular-nums">{data.priceLower || "—"}</p>
+                    </div>
+                </div>
+                <form onSubmit={handleSubmit} className="card-body space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="label" htmlFor="editUpper">บน</label>
+                            <input
+                                type="text"
+                                id="editUpper"
+                                inputMode="numeric"
+                                className="input"
+                                placeholder="0"
+                                value={priceUpper}
+                                onChange={handleChangePriceUpper}
+                            />
+                        </div>
+                        <div>
+                            <label className="label" htmlFor="editLower">ล่าง</label>
+                            <input
+                                type="text"
+                                id="editLower"
+                                inputMode="numeric"
+                                className="input"
+                                placeholder="0"
+                                value={priceLower}
+                                onChange={handleChangePriceLower}
+                            />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                        <button type="button" onClick={onClose} className="btn-ghost">ยกเลิก</button>
+                        <button type="submit" className="btn-primary" disabled={!priceUpper && !priceLower}>
+                            บันทึกการแก้ไข
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     )

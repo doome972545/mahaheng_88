@@ -4,17 +4,189 @@ import Modal from "../components/Modal";
 import FormNum from "../components/FormNum";
 import { MdDelete } from "react-icons/md";
 import { getDatabase, onValue, ref } from "firebase/database";
-import app from "../config/firebase";
+import app, { authReady, firebaseEnabled } from "../config/firebase";
 import React from "react";
 import { useEffect, useState } from "react";
-const Home = () => {
-  const db = getDatabase(app);
 
-  const limit = JSON.parse(localStorage.getItem("limitvalue"));
-  if (limit === undefined) {
-    console.log("object");
-  }
-  const limitint = parseInt(limit);
+const emptyNotify = { username: "", dataArray: [], priceUpper: "", priceLower: "" };
+
+const normalizeNotify = (raw) => {
+  if (!raw) return emptyNotify;
+  let dataArray = [];
+  if (Array.isArray(raw.dataArray))
+    dataArray = raw.dataArray.filter((v) => v !== null && v !== undefined);
+  else if (raw.dataArray && typeof raw.dataArray === "object")
+    dataArray = Object.values(raw.dataArray);
+  return {
+    username: raw.username ?? "",
+    dataArray,
+    priceUpper: raw.priceUpper ?? "",
+    priceLower: raw.priceLower ?? "",
+  };
+};
+
+const useNotifyNode = (db, path) => {
+  const [notify, setNotify] = useState(emptyNotify);
+  useEffect(() => {
+    if (!db) return undefined;
+    let cancelled = false;
+    let unsubscribe = () => {};
+    authReady.then((user) => {
+      // the effect can be torn down while sign-in is still pending — without
+      // `cancelled` the listener would attach after unmount and never release
+      if (cancelled || !user) return;
+      unsubscribe = onValue(
+        ref(db, path),
+        (snapshot) => setNotify(normalizeNotify(snapshot.val())),
+        (error) => console.error(`RTDB ${path}:`, error.message),
+      );
+    });
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, [db, path]);
+  return notify;
+};
+
+const accents = {
+  indigo: { chip: "bg-indigo-50 text-indigo-700", num: "bg-indigo-50 text-indigo-700" },
+  amber: { chip: "bg-amber-50 text-amber-700", num: "bg-amber-50 text-amber-700" },
+};
+
+const NotifyPanel = ({ title, accent, notify, total }) => (
+  <div className="rounded-xl border border-slate-200 p-4">
+    <div className="flex items-center justify-between">
+      <p className="text-sm font-semibold">{title}</p>
+      <span className={`chip ${accents[accent].chip}`}>
+        {notify.dataArray.length} เลข
+      </span>
+    </div>
+    {notify.dataArray.length === 0 ? (
+      <p className="muted mt-3 text-center">ไม่มีข้อมูลล่าสุด</p>
+    ) : (
+      <>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {notify.dataArray.map((el, index) => (
+            <span
+              key={index}
+              className={`rounded-lg px-2 py-1 text-sm font-semibold tabular-nums ${accents[accent].num}`}
+            >
+              {el}
+            </span>
+          ))}
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-3 text-sm">
+          <div className="flex items-center justify-between">
+            <span className="muted">บน</span>
+            <span className="font-semibold tabular-nums">
+              {notify.priceUpper || "—"}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="muted">ล่าง</span>
+            <span className="font-semibold tabular-nums">
+              {notify.priceLower || "—"}
+            </span>
+          </div>
+        </div>
+        <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
+          <span className="muted">ยอดรวม</span>
+          <span className="text-lg font-bold tabular-nums text-rose-600">
+            {total.toLocaleString("th-TH")} บาท
+          </span>
+        </div>
+      </>
+    )}
+  </div>
+);
+
+const NumTable = ({ title, accent, rows, limitint, onEdit, onDeleteZero }) => (
+  <section className="card flex flex-col">
+    <div className="card-head">
+      <h3 className="card-title">{title}</h3>
+      <span className={`chip ${accents[accent].chip}`}>
+        {rows ? rows.length : 0} รายการ
+      </span>
+    </div>
+    <div className="scroll-y max-h-[60vh]">
+      <table className="tbl">
+        <thead>
+          <tr>
+            <th className="tbl-th text-left">เลข</th>
+            <th className="tbl-th text-right">บน</th>
+            <th className="tbl-th text-right">ล่าง</th>
+            <th className="tbl-th w-20" />
+          </tr>
+        </thead>
+        <tbody>
+          {rows && rows.length > 0 ? (
+            rows.map((el, index) => (
+              <tr
+                key={index}
+                className="group transition odd:bg-white even:bg-slate-50/60 hover:bg-indigo-50/50"
+              >
+                <td className="tbl-td text-left font-semibold">{el.num || "—"}</td>
+                <td
+                  className={`tbl-td text-right ${
+                    Number(el.priceUpper) > limitint ? "font-bold text-rose-600" : ""
+                  }`}
+                >
+                  {el.priceUpper}
+                </td>
+                <td
+                  className={`tbl-td text-right ${
+                    Number(el.priceLower) > limitint ? "font-bold text-rose-600" : ""
+                  }`}
+                >
+                  {el.priceLower}
+                </td>
+                <td className="tbl-td">
+                  <div className="flex items-center justify-end gap-1">
+                    <button
+                      type="button"
+                      onClick={() => onEdit(el)}
+                      className="grid h-8 w-8 place-items-center rounded-lg text-slate-400 transition hover:bg-white hover:text-indigo-600"
+                      aria-label="แก้ไข"
+                    >
+                      <CiEdit />
+                    </button>
+                    {el.num === "" ? (
+                      <button
+                        type="button"
+                        onClick={onDeleteZero}
+                        className="grid h-8 w-8 place-items-center rounded-lg text-rose-500 transition hover:bg-rose-50"
+                        aria-label="ลบ"
+                      >
+                        <MdDelete />
+                      </button>
+                    ) : null}
+                  </div>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={4} className="px-3 py-10 text-center text-sm text-slate-400">
+                ไม่มีการบันทึกข้อมูล
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  </section>
+);
+
+const Home = () => {
+  const db = firebaseEnabled ? getDatabase(app) : null;
+
+  // NaN when unset is deliberate: `Number(x) > NaN` is always false, which is
+  // what keeps the red over-limit highlight off. A `|| 0` here would turn every
+  // row red.
+  const [limitint, setLimitint] = useState(() =>
+    parseInt(JSON.parse(localStorage.getItem("limitvalue"))),
+  );
   const [listTwo, setListTwo] = useState(null);
   const [listThree, setListThree] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -22,6 +194,7 @@ const Home = () => {
   const [sumtwo, setSumTwo] = useState();
   const [sumthree, setSumThree] = useState();
   const storedUserData = JSON.parse(localStorage.getItem("user"));
+  const UserId = storedUserData.data.id;
   const handleEdit = (id, priceLower, priceUpper, num, type) => {
     setEditData({
       id,
@@ -108,12 +281,18 @@ const Home = () => {
     }
   };
 
-  useEffect(() => {
+  const refreshAll = () => {
     sumTwo();
     sumThree();
     fecthListTwo();
     fecthListThree();
-  }, []); // Empty dependency array means this effect runs once after the initial render
+  };
+
+  useEffect(() => {
+    refreshAll();
+    // mount-only is what we want here
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const deleteZero = async (e) => {
     try {
@@ -131,7 +310,7 @@ const Home = () => {
       const dataRes = await fetchData.json();
       if (fetchData.ok) {
         toast.success(dataRes.message);
-        window.location.reload();
+        refreshAll();
       } else {
         toast.error(dataRes.message);
       }
@@ -140,344 +319,103 @@ const Home = () => {
     }
   };
 
-  const UserId = storedUserData.data.id;
-  const [notifyTwo, setNotify] = useState({ dataArray: [] }); // Initialize with an object having dataArray property
+  const notifyTwo = useNotifyNode(db, "notify/two/" + UserId);
+  const notifyThree = useNotifyNode(db, "notify/three/" + UserId);
 
-  // Fetch user data upon component mount
-  useEffect(() => {
-    async function fetchUserData() {
-      const userRef = ref(db, "notify/two/" + UserId);
-      onValue(userRef, (snapshot) => {
-        const data = snapshot.val();
-        setNotify(data || { dataArray: [] }); // Ensure data or initialize with an empty array
-      });
-    }
-    fetchUserData();
-  }, []);
-  const [notifyThree, setNotifyThree] = useState({ dataArray: [] }); // Initialize with an object having dataArray property
+  const UpTwo = Number(notifyTwo.priceUpper) || 0;
+  const LowTwo = Number(notifyTwo.priceLower) || 0;
+  const UpThree = Number(notifyThree.priceUpper) || 0;
+  const LowThree = Number(notifyThree.priceLower) || 0;
 
-  // Fetch user data upon component mount
-  useEffect(() => {
-    async function fetchUserData() {
-      const userRef = ref(db, "notify/three/" + UserId);
-      onValue(userRef, (snapshot) => {
-        const data = snapshot.val();
-        setNotifyThree(data || { dataArray: [] }); // Ensure data or initialize with an empty array
-      });
-    }
-    fetchUserData();
-  }, []);
-  const UpTwo = parseInt(notifyTwo.priceUpper);
-  const LowTwo = parseInt(notifyTwo.priceLower);
-  const UpThree = parseInt(notifyThree.priceUpper);
-  const LowThree = parseInt(notifyThree.priceLower);
+  const totalTwo = sumtwo ? Number(sumtwo.Upper) + Number(sumtwo.Lower) : 0;
+  const totalThree = sumthree ? Number(sumthree.Upper) + Number(sumthree.Lower) : 0;
+
   return (
-    <div className="grid grid-cols-2 m-4 justify-between gap-4">
-      <FormNum></FormNum>
-      <div className="border min-w-[50%] bg-teal-100 rounded-md shadow-lg">
-        <div className="mx-4 my-3 bg-white rounded-md shadow-md">
-          <h1 className="text-center">อัพเดทล่าสุด</h1>
-          <div className="grid grid-cols-2 lg:flex-row justify-between m-3">
-            {notifyTwo ? (
-              <div className="flex gap-16 lg:gap-20 shadow-lg border rounded-md p-3">
-                <div>
-                  <p>เลข</p>
-                  {notifyTwo && notifyTwo.dataArray ? (
-                    notifyTwo.dataArray.map((el, index) => (
-                      <div key={index}>
-                        <p>{el}</p>
-                        {/* Render other data from 'el' */}
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-center text-red-500">No recent data</p>
-                  )}
-                </div>
-                <div>
-                  <p>บน</p>
-                  {notifyTwo ? <p>{notifyTwo.priceUpper}</p> : ""}
-                </div>
-                <div>
-                  <p>ล่าง</p>
-                  {notifyTwo ? <p>{notifyTwo.priceLower}</p> : ""}
-                  <p className="text-end ">
-                    <p>ยอดรวม</p>
-                    {notifyTwo ? (
-                      <>
-                        {notifyTwo.priceUpper && notifyTwo.priceLower ? (
-                          <p>
-                            {notifyTwo.priceUpper} x {notifyTwo.priceLower} บาท
-                          </p>
-                        ) : (
-                          <>
-                            {notifyTwo.priceUpper ? (
-                              <p>บน {notifyTwo.priceUpper} บาท</p>
-                            ) : (
-                              <>
-                                {notifyTwo.priceLower ? (
-                                  <p>ล่าง {notifyTwo.priceLower} บาท</p>
-                                ) : (
-                                  ""
-                                )}
-                              </>
-                            )}
-                          </>
-                        )}
-                      </>
-                    ) : (
-                      ""
-                    )}
-                    <p className="flex gap-2">
-                      รวม{" "}
-                      <p className="text-red-600">
-                        {UpTwo + LowTwo || UpTwo || LowTwo || 0}
-                      </p>{" "}
-                      บาท
-                    </p>
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <p className="text-center text-red-500">ไม่มีข้อมูลล่าสุด</p>
-            )}
-            {notifyThree ? (
-              <div className="flex gap-16 lg:gap-20 shadow-lg border rounded-md p-3 ">
-                <div className="">
-                  <p>เลข</p>
-                  {notifyThree ? (
-                    // Use .map to iterate and render data from each object in 'notifyThree'
-                    notifyThree.dataArray.map((el, index) => (
-                      <div key={index}>
-                        <p>{el}</p>
-                        {/* Render other data from 'el' */}
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-center text-red-500">No recent data</p>
-                  )}
-                </div>
-                <div>
-                  <p>บน</p>
-                  {notifyThree ? <p>{notifyThree.priceUpper}</p> : ""}
-                </div>
-                <div>
-                  <p>ล่าง</p>
-                  {notifyThree ? <p>{notifyThree.priceLower}</p> : ""}
-                  <p className="text-end ">
-                    <p>ยอดรวม</p>
-                    {notifyThree ? (
-                      <>
-                        {notifyThree.priceUpper && notifyThree.priceLower ? (
-                          <p>
-                            {notifyThree.priceUpper} x {notifyThree.priceLower}{" "}
-                            บาท
-                          </p>
-                        ) : (
-                          <>
-                            {notifyThree.priceUpper ? (
-                              <p>บน {notifyThree.priceUpper} บาท</p>
-                            ) : (
-                              <>
-                                {notifyThree.priceLower ? (
-                                  <p>ล่าง {notifyThree.priceLower} บาท</p>
-                                ) : (
-                                  ""
-                                )}
-                              </>
-                            )}
-                          </>
-                        )}
-                      </>
-                    ) : (
-                      ""
-                    )}
-                    <p className="flex gap-2">
-                      รวม{" "}
-                      <p className="text-red-600">
-                        {UpThree + LowThree || UpThree || LowThree || 0}
-                      </p>{" "}
-                      บาท
-                    </p>
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <p className="text-center text-red-500">ไม่มีข้อมูลล่าสุด</p>
-            )}
-          </div>
+    <main className="mx-auto max-w-[1440px] px-4 py-5">
+      <div className="grid gap-5 lg:grid-cols-[380px_minmax(0,1fr)] lg:items-start">
+        <div className="lg:sticky lg:top-[73px]">
+          <FormNum
+            limitint={limitint}
+            onLimitChange={setLimitint}
+            onSaved={refreshAll}
+          />
         </div>
-        <div className="grid grid-cols-2 mx-4 my-3 gap-2">
-          <div className="">
-            <h1 className="text-center">เลข 2 ตัว </h1>
-            <div className="flex gap-3 ml-4">
-              <p className="flex gap-3">
-                {" "}
-                ยอดรวม{" "}
-                {sumtwo ? (
-                  <p className="text-red-600">{sumtwo.Upper + sumtwo.Lower}</p>
-                ) : (
-                  <p>0</p>
-                )}{" "}
-                บาท
+        <div className="space-y-5">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <div className="card p-4">
+              <p className="muted text-xs">ยอดรวม 2 ตัว</p>
+              <p className="stat-value mt-1 text-indigo-600">
+                {totalTwo.toLocaleString("th-TH")}
+                <span className="text-sm font-normal text-slate-400"> บาท</span>
               </p>
             </div>
-            <div className="overflow-y-auto h-[80vh] px-4 mt-4 ">
-              <table class="table-auto w-full bg-white ">
-                <thead>
-                  <tr>
-                    <th className="border border-slate-300 text-center">เลข</th>
-                    <th className="border border-slate-300 text-center">บน</th>
-                    <th className="border border-slate-300 text-center">
-                      ล่าง
-                    </th>
-                    <th className="border border-slate-300 text-center">
-                      actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {listTwo && listTwo.length > 0 ? (
-                    listTwo.map((el, index) => (
-                      <tr key={index} className="border">
-                        <td class="border border-slate-300 text-center text-lg">
-                          {el.num}
-                        </td>
-                        <td
-                          class={`border border-slate-300 text-center text-lg ${el.priceUpper > limitint ? "text-red-500" : ""}`}
-                        >
-                          {el.priceUpper}
-                        </td>
-                        <td
-                          class={`border border-slate-300 text-center text-lg ${el.priceLower > limitint ? "text-red-500" : ""}`}
-                        >
-                          {el.priceLower}
-                        </td>
-                        <td
-                          class={` text-center flex justify-center text-2xl cursor-pointer`}
-                          onClick={() =>
-                            handleEdit(
-                              el.id,
-                              el.priceLower,
-                              el.priceUpper,
-                              el.num,
-                              "two",
-                            )
-                          }
-                        >
-                          <CiEdit />
-                        </td>
-                        {el.num === "" ? (
-                          <td>
-                            <div
-                              className="bg-red-400 text-white rounded-md mx-auto cursor-pointer pl-4 py-1"
-                              onClick={deleteZero}
-                            >
-                              <MdDelete />
-                            </div>
-                          </td>
-                        ) : (
-                          ""
-                        )}
-                        {/* <td class={` text-center flex justify-center text-2xl cursor-pointer`} onClick={(() => handleEdit(el.id, el.priceLower, el.priceUpper, el.num, 'two'))} ><CiEdit /></td> */}
-                        <td></td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colspan="5" class="text-center bg-red-200">
-                        ไม่มีการบันทึกข้อมูล
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+            <div className="card p-4">
+              <p className="muted text-xs">ยอดรวม 3 ตัว</p>
+              <p className="stat-value mt-1 text-amber-600">
+                {totalThree.toLocaleString("th-TH")}
+                <span className="text-sm font-normal text-slate-400"> บาท</span>
+              </p>
+            </div>
+            <div className="card col-span-2 p-4 sm:col-span-1">
+              <p className="muted text-xs">รวมทั้งหมด</p>
+              <p className="stat-value mt-1 text-slate-900">
+                {(totalTwo + totalThree).toLocaleString("th-TH")}
+                <span className="text-sm font-normal text-slate-400"> บาท</span>
+              </p>
             </div>
           </div>
-          <div className="">
-            <h1 className="text-center">เลข 3 ตัว</h1>
-            <div className="flex gap-3 ml-4">
-              <p className="flex gap-3">
-                {" "}
-                ยอดรวม
-                {sumthree ? (
-                  <p className="text-red-600">
-                    {sumthree.Upper + sumthree.Lower}
-                  </p>
-                ) : (
-                  <p>0</p>
-                )}{" "}
-                บาท
-              </p>
+
+          <section className="card">
+            <div className="card-head">
+              <h2 className="card-title">อัพเดทล่าสุด</h2>
+              {firebaseEnabled ? (
+                <span className="chip bg-emerald-50 text-emerald-700">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  realtime
+                </span>
+              ) : (
+                <span className="chip bg-slate-100 text-slate-500">
+                  ยังไม่ได้ตั้งค่า Firebase
+                </span>
+              )}
             </div>
-            <div className="overflow-y-auto h-[80vh] px-4 mt-4 ">
-              <table class="table-auto w-full bg-white">
-                <thead>
-                  <tr>
-                    <th className="border border-slate-300 text-center">เลข</th>
-                    <th className="border border-slate-300 text-center">บน</th>
-                    <th className="border border-slate-300 text-center">
-                      ล่าง
-                    </th>
-                    <th className="border border-slate-300 text-center">
-                      actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {listThree && listThree.length > 0 ? (
-                    listThree.map((el, index) => (
-                      <tr key={index} className="border">
-                        <td class="border border-slate-300 text-center text-lg">
-                          {el.num}
-                        </td>
-                        <td
-                          class={`border border-slate-300 text-center text-lg ${el.priceUpper > limitint ? "text-red-500" : ""}`}
-                        >
-                          {el.priceUpper}
-                        </td>
-                        <td
-                          class={`border border-slate-300 text-center text-lg ${el.priceLower > limitint ? "text-red-500" : ""}`}
-                        >
-                          {el.priceLower}
-                        </td>
-                        <td
-                          class={` text-center flex justify-center text-2xl cursor-pointer`}
-                          onClick={() =>
-                            handleEdit(
-                              el.id,
-                              el.priceLower,
-                              el.priceUpper,
-                              el.num,
-                              "three",
-                            )
-                          }
-                        >
-                          <CiEdit />
-                        </td>
-                        {el.num === "" ? (
-                          <td>
-                            <div
-                              className="bg-red-400 text-white rounded-md mx-auto cursor-pointer pl-4 py-1"
-                              onClick={deleteZero}
-                            >
-                              <MdDelete />
-                            </div>
-                          </td>
-                        ) : (
-                          ""
-                        )}
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colspan="5" class="text-center bg-red-200">
-                        ไม่มีการบันทึกข้อมูล
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+            <div className="grid gap-4 p-5 sm:grid-cols-2">
+              <NotifyPanel
+                title="หวย 2 ตัว"
+                accent="indigo"
+                notify={notifyTwo}
+                total={UpTwo + LowTwo}
+              />
+              <NotifyPanel
+                title="หวย 3 ตัว"
+                accent="amber"
+                notify={notifyThree}
+                total={UpThree + LowThree}
+              />
             </div>
+          </section>
+
+          <div className="grid gap-5 xl:grid-cols-2">
+            <NumTable
+              title="เลข 2 ตัว"
+              accent="indigo"
+              rows={listTwo}
+              limitint={limitint}
+              onEdit={(el) =>
+                handleEdit(el.id, el.priceLower, el.priceUpper, el.num, "two")
+              }
+              onDeleteZero={deleteZero}
+            />
+            <NumTable
+              title="เลข 3 ตัว"
+              accent="amber"
+              rows={listThree}
+              limitint={limitint}
+              onEdit={(el) =>
+                handleEdit(el.id, el.priceLower, el.priceUpper, el.num, "three")
+              }
+              onDeleteZero={deleteZero}
+            />
           </div>
         </div>
       </div>
@@ -485,8 +423,9 @@ const Home = () => {
         show={showModal}
         onClose={() => setShowModal(false)}
         data={EditData}
+        onSaved={refreshAll}
       />
-    </div>
+    </main>
   );
 };
 

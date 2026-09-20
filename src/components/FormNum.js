@@ -1,7 +1,19 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import app, { authReady, firebaseEnabled } from "../config/firebase";
 import { getDatabase, ref, set, remove } from "firebase/database";
+
+const permutationsOf = (digits) => {
+  if (digits.length <= 1) return [digits.join("")];
+  return digits.flatMap((digit, index) => {
+    const rest = [...digits.slice(0, index), ...digits.slice(index + 1)];
+    return permutationsOf(rest).map((tail) => digit + tail);
+  });
+};
+
+const expandReverse = (numbers) => [
+  ...new Set(numbers.flatMap((number) => permutationsOf([...number]))),
+];
 
 const FormNum = ({ limitint, onLimitChange, onSaved }) => {
   const db = firebaseEnabled ? getDatabase(app) : null;
@@ -14,16 +26,17 @@ const FormNum = ({ limitint, onLimitChange, onSaved }) => {
   const [limitValue, setLimitValue] = useState("");
   const [confirmTwo, setConfirmTwo] = useState(false);
   const [confirmThree, setConfirmThree] = useState(false);
+  const [reverseNum, setReverseNum] = useState(false);
   const username = storedUserData.data.username;
   const UserId = storedUserData.data.id;
-  const createTwoNotify = async () => {
+  const createTwoNotify = async (numbers) => {
     if (!db) return;
     const user = await authReady;
     if (!user) return;
     try {
       await set(ref(db, "notify/two/" + UserId), {
         username,
-        dataArray,
+        dataArray: numbers,
         priceUpper,
         priceLower,
       });
@@ -32,14 +45,14 @@ const FormNum = ({ limitint, onLimitChange, onSaved }) => {
       toast.error("อัพเดตข้อมูลเรียลไทม์ไม่สำเร็จ");
     }
   };
-  const createThreeNotify = async () => {
+  const createThreeNotify = async (numbers) => {
     if (!db) return;
     const user = await authReady;
     if (!user) return;
     try {
       await set(ref(db, "notify/three/" + UserId), {
         username,
-        dataArray,
+        dataArray: numbers,
         priceUpper,
         priceLower,
       });
@@ -64,10 +77,24 @@ const FormNum = ({ limitint, onLimitChange, onSaved }) => {
     const value = event.target.value;
     setInputValue(value);
     // Split the input value into an array when there are spaces
-    const dataArray = value.split(/\s+/);
+    const dataArray = value.split(/\s+/).filter(Boolean);
     const uniqueDataArray = [...new Set(dataArray)];
     setDataArray(uniqueDataArray);
   };
+  const toggleReverse = useCallback(() => {
+    const nextReverse = !reverseNum;
+    setReverseNum(nextReverse);
+    toast(nextReverse ? "เปิดโหมดกลับเลข" : "ปิดโหมดกลับเลข", { icon: "🔁" });
+  }, [reverseNum]);
+  useEffect(() => {
+    const handleShortcut = (event) => {
+      if (!event.ctrlKey || event.code !== "Space") return;
+      event.preventDefault();
+      toggleReverse();
+    };
+    window.addEventListener("keydown", handleShortcut);
+    return () => window.removeEventListener("keydown", handleShortcut);
+  }, [toggleReverse]);
   const handleSubmitValue = () => {
     localStorage.setItem("limitvalue", JSON.stringify(limitValue));
     onLimitChange(parseInt(limitValue));
@@ -105,7 +132,8 @@ const FormNum = ({ limitint, onLimitChange, onSaved }) => {
           }
         }
 
-        await createTwoNotify();
+        const numbersTwo = reverseNum ? expandReverse(dataArray) : dataArray;
+        await createTwoNotify(numbersTwo);
         const saveVal = await fetch(
           `${process.env.REACT_APP_SERVER_DOMIN}/api/num/savetwo/${storedUserData.data.id}`,
           {
@@ -114,7 +142,7 @@ const FormNum = ({ limitint, onLimitChange, onSaved }) => {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              dataArray,
+              dataArray: numbersTwo,
               priceUpper,
               priceLower,
             }),
@@ -138,7 +166,8 @@ const FormNum = ({ limitint, onLimitChange, onSaved }) => {
             return;
           }
         }
-        await createThreeNotify();
+        const numbersThree = reverseNum ? expandReverse(dataArray) : dataArray;
+        await createThreeNotify(numbersThree);
         const saveValThree = await fetch(
           `${process.env.REACT_APP_SERVER_DOMIN}/api/num/savethree/${storedUserData.data.id}`,
           {
@@ -147,7 +176,7 @@ const FormNum = ({ limitint, onLimitChange, onSaved }) => {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              dataArray,
+              dataArray: numbersThree,
               priceUpper,
               priceLower,
             }),
@@ -230,6 +259,8 @@ const FormNum = ({ limitint, onLimitChange, onSaved }) => {
       console.error("Error:", error.message);
     }
   };
+
+  const previewNumbers = reverseNum ? expandReverse(dataArray) : dataArray;
 
   const summaryPrice =
     priceUpper && priceLower
@@ -332,9 +363,24 @@ const FormNum = ({ limitint, onLimitChange, onSaved }) => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="label" htmlFor="inputValue">
-                เลข
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="label" htmlFor="inputValue">
+                  เลข
+                </label>
+                <button
+                  type="button"
+                  onClick={toggleReverse}
+                  aria-pressed={reverseNum}
+                  title="สลับโหมดกลับเลข (Ctrl + Space)"
+                  className={`chip ${
+                    reverseNum
+                      ? "bg-indigo-50 text-indigo-600"
+                      : "bg-slate-100 text-slate-500"
+                  }`}
+                >
+                  กลับเลข {reverseNum ? "เปิด" : "ปิด"}
+                </button>
+              </div>
               <input
                 type="text"
                 id="inputValue"
@@ -344,7 +390,9 @@ const FormNum = ({ limitint, onLimitChange, onSaved }) => {
                 className="input"
                 placeholder="เช่น 12 34 56"
               />
-              <p className="muted mt-1.5 text-xs">คั่นแต่ละเลขด้วยช่องว่าง</p>
+              <p className="muted mt-1.5 text-xs">
+                คั่นแต่ละเลขด้วยช่องว่าง · กด Ctrl + Space เพื่อสลับโหมดกลับเลข
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -395,6 +443,16 @@ const FormNum = ({ limitint, onLimitChange, onSaved }) => {
                     {inputValue || "—"}
                   </span>
                 </div>
+                {reverseNum && previewNumbers.length ? (
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="muted shrink-0">
+                      กลับเลข ({previewNumbers.length})
+                    </span>
+                    <span className="text-right font-semibold tabular-nums">
+                      {previewNumbers.join(" ")}
+                    </span>
+                  </div>
+                ) : null}
                 <div className="flex items-center justify-between">
                   <span className="muted">ราคา</span>
                   <span className="font-semibold tabular-nums">

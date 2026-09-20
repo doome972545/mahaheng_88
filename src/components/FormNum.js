@@ -81,14 +81,6 @@ const FormNum = ({ limitint, onLimitChange, onSaved }) => {
     const uniqueDataArray = [...new Set(dataArray)];
     setDataArray(uniqueDataArray);
   };
-  const selectPlain = (item) => {
-    setSelectItem(item);
-    setReverseNum(false);
-  };
-  const selectReverse = (item) => {
-    setSelectItem(item);
-    setReverseNum(true);
-  };
   const toggleReverse = useCallback(() => {
     const nextReverse = !reverseNum;
     setReverseNum(nextReverse);
@@ -344,52 +336,28 @@ const FormNum = ({ limitint, onLimitChange, onSaved }) => {
           )}
         </div>
         <div className="card-body space-y-5">
-          <div className="grid grid-cols-4 gap-1 rounded-xl bg-slate-100 p-1">
+          <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1">
             <button
               type="button"
-              onClick={() => selectPlain("two")}
+              onClick={() => setSelectItem("two")}
               className={`rounded-lg py-2 text-sm font-semibold transition ${
-                selectItem === "two" && !reverseNum
+                selectItem === "two"
                   ? "bg-white text-indigo-600 shadow-sm"
                   : "text-slate-500 hover:text-slate-700"
               }`}
             >
-              2 ตัว
+              หวย 2 ตัว
             </button>
             <button
               type="button"
-              onClick={() => selectPlain("three")}
+              onClick={() => setSelectItem("three")}
               className={`rounded-lg py-2 text-sm font-semibold transition ${
-                selectItem === "three" && !reverseNum
+                selectItem === "three"
                   ? "bg-white text-indigo-600 shadow-sm"
                   : "text-slate-500 hover:text-slate-700"
               }`}
             >
-              3 ตัว
-            </button>
-            <button
-              type="button"
-              onClick={() => selectReverse("two")}
-              title="2 ตัวกลับ (Ctrl + Space สลับโหมดกลับเลข)"
-              className={`rounded-lg py-2 text-sm font-semibold transition ${
-                selectItem === "two" && reverseNum
-                  ? "bg-white text-indigo-600 shadow-sm"
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              2 กลับ
-            </button>
-            <button
-              type="button"
-              onClick={() => selectReverse("three")}
-              title="3 ตัวกลับ (Ctrl + Space สลับโหมดกลับเลข)"
-              className={`rounded-lg py-2 text-sm font-semibold transition ${
-                selectItem === "three" && reverseNum
-                  ? "bg-white text-indigo-600 shadow-sm"
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              3 กลับ
+              หวย 3 ตัว
             </button>
           </div>
 

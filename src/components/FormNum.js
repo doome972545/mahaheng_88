@@ -1,7 +1,20 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import app from "../config/firebase";
 import { getDatabase, ref, set } from "firebase/database";
+
+const permutationsOf = (digits) => {
+  if (digits.length <= 1) return [digits.join("")];
+  return digits.flatMap((digit, index) => {
+    const rest = [...digits.slice(0, index), ...digits.slice(index + 1)];
+    return permutationsOf(rest).map((tail) => digit + tail);
+  });
+};
+
+const expandReverse = (numbers) =>
+  Array.isArray(numbers)
+    ? [...new Set(numbers.flatMap((number) => permutationsOf([...number])))]
+    : numbers;
 
 const FormNum = () => {
   const db = getDatabase(app);
@@ -16,22 +29,23 @@ const FormNum = () => {
   const [limitValue, setLimitValue] = useState("");
   const [confirmTwo, setConfirmTwo] = useState(false);
   const [confirmThree, setConfirmThree] = useState(false);
+  const [reverseNum, setReverseNum] = useState(false);
   const username = storedUserData.data.username;
   const UserId = storedUserData.data.id;
-  const createTwoNotify = async () => {
+  const createTwoNotify = async (numbers) => {
     const userRef = ref(db, "notify/two/" + UserId);
     await set(userRef, {
       username,
-      dataArray,
+      dataArray: numbers,
       priceUpper,
       priceLower,
     });
   };
-  const createThreeNotify = async () => {
+  const createThreeNotify = async (numbers) => {
     const userRef = ref(db, "notify/three/" + UserId);
     await set(userRef, {
       username,
-      dataArray,
+      dataArray: numbers,
       priceUpper,
       priceLower,
     });
@@ -52,10 +66,32 @@ const FormNum = () => {
     const value = event.target.value;
     setInputValue(value);
     // Split the input value into an array when there are spaces
-    const dataArray = value.split(/\s+/);
+    const dataArray = value.split(/\s+/).filter(Boolean);
     const uniqueDataArray = [...new Set(dataArray)];
     setDataArray(uniqueDataArray);
   };
+  const selectPlain = (item) => {
+    setSelectItem(item);
+    setReverseNum(false);
+  };
+  const selectReverse = (item) => {
+    setSelectItem(item);
+    setReverseNum(true);
+  };
+  const toggleReverse = useCallback(() => {
+    const nextReverse = !reverseNum;
+    setReverseNum(nextReverse);
+    toast(nextReverse ? "เปิดโหมดกลับเลข" : "ปิดโหมดกลับเลข", { icon: "🔁" });
+  }, [reverseNum]);
+  useEffect(() => {
+    const handleShortcut = (event) => {
+      if (!event.ctrlKey || event.code !== "Space") return;
+      event.preventDefault();
+      toggleReverse();
+    };
+    window.addEventListener("keydown", handleShortcut);
+    return () => window.removeEventListener("keydown", handleShortcut);
+  }, [toggleReverse]);
   const handleSubmitValue = () => {
     window.location.reload();
     localStorage.setItem("limitvalue", JSON.stringify(limitValue));
@@ -76,7 +112,8 @@ const FormNum = () => {
           }
         }
 
-        createTwoNotify();
+        const numbersTwo = reverseNum ? expandReverse(dataArray) : dataArray;
+        createTwoNotify(numbersTwo);
         const saveVal = await fetch(
           `${process.env.REACT_APP_SERVER_DOMIN}/api/num/savetwo/${storedUserData.data.id}`,
           {
@@ -85,7 +122,7 @@ const FormNum = () => {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              dataArray,
+              dataArray: numbersTwo,
               priceUpper,
               priceLower,
             }),
@@ -104,7 +141,8 @@ const FormNum = () => {
             return;
           }
         }
-        createThreeNotify();
+        const numbersThree = reverseNum ? expandReverse(dataArray) : dataArray;
+        createThreeNotify(numbersThree);
         const saveValThree = await fetch(
           `${process.env.REACT_APP_SERVER_DOMIN}/api/num/savethree/${storedUserData.data.id}`,
           {
@@ -113,7 +151,7 @@ const FormNum = () => {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              dataArray,
+              dataArray: numbersThree,
               priceUpper,
               priceLower,
             }),
@@ -179,6 +217,9 @@ const FormNum = () => {
     }
   };
 
+  const previewNumbers =
+    reverseNum && Array.isArray(dataArray) ? expandReverse(dataArray) : [];
+
   return (
     <div className="relative">
       <div
@@ -226,24 +267,50 @@ const FormNum = () => {
         <div className="flex gap-2 mx-4">
           <button
             className={`border rounded-md px-2 py-1 ${
-              selectItem === "two"
+              selectItem === "two" && !reverseNum
                 ? "bg-red-500"
                 : "bg-green-400 hover:bg-green-500"
             }`}
-            onClick={() => setSelectItem("two")}
+            onClick={() => selectPlain("two")}
           >
             2ตัว
           </button>
 
           <button
             className={`border rounded-md px-2 py-1 ${
-              selectItem === "three"
+              selectItem === "three" && !reverseNum
                 ? "bg-red-500"
                 : "bg-green-400 hover:bg-green-500"
             }`}
-            onClick={() => setSelectItem("three")}
+            onClick={() => selectPlain("three")}
           >
             3ตัว
+          </button>
+
+          <button
+            type="button"
+            className={`border rounded-md px-2 py-1 ${
+              selectItem === "two" && reverseNum
+                ? "bg-red-500"
+                : "bg-green-400 hover:bg-green-500"
+            }`}
+            onClick={() => selectReverse("two")}
+            title="2 ตัวกลับ (Ctrl + Space สลับโหมดกลับเลข)"
+          >
+            2 กลับ
+          </button>
+
+          <button
+            type="button"
+            className={`border rounded-md px-2 py-1 ${
+              selectItem === "three" && reverseNum
+                ? "bg-red-500"
+                : "bg-green-400 hover:bg-green-500"
+            }`}
+            onClick={() => selectReverse("three")}
+            title="3 ตัวกลับ (Ctrl + Space สลับโหมดกลับเลข)"
+          >
+            3 กลับ
           </button>
           <p className="mx-auto my-auto text-lg flex gap-2">
             จำนวนเงินที่กำหนดใว้{" "}
@@ -291,8 +358,16 @@ const FormNum = () => {
               หวย
               {selectItem === "two" ? <p> 2 ตัว</p> : ""}
               {selectItem === "three" ? <p> 3 ตัว</p> : ""}
+              {reverseNum ? <p> (กลับ)</p> : ""}
             </p>
             <p className="mb-2">{inputValue}</p>
+            {reverseNum && previewNumbers.length ? (
+              <p className="mb-2">
+                กลับเลข ({previewNumbers.length}) : {previewNumbers.join(" ")}
+              </p>
+            ) : (
+              ""
+            )}
 
             {priceUpper && priceLower ? (
               <p className="mb-2">
